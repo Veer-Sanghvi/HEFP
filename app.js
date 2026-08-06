@@ -72,6 +72,7 @@ function readSoakInputs() {
 }
 
 let lastTbcSteady = 477.5;
+let heroAnimated = false; // true after the first paint — only the very first render draws in
 
 // ================= Section 1: steady state =================
 function renderSteady() {
@@ -114,16 +115,27 @@ function renderSteady() {
   svg.appendChild(bandLbl);
 
   const barH = 30;
+  const bareW = xs(bare.Ts) - x0, tbcW = xs(tbc.Ts) - x0;
   // bare bar
-  svg.appendChild(svgEl("rect", { x: x0, y: y0 + 24, width: xs(bare.Ts) - x0, height: barH, fill: "var(--cool)", rx: 2 }));
+  const bareBar = svgEl("rect", { x: x0, y: y0 + 24, width: heroAnimated ? bareW : 0, height: barH, fill: "var(--cool)", rx: 2 });
+  svg.appendChild(bareBar);
   const lbl1 = svgEl("text", { x: Math.min(xs(bare.Ts) + 8, x0 + w - 4), y: y0 + 24 + barH / 2 + 4, class: "axis-label", fill: "var(--ink-2)" });
   lbl1.textContent = `bare  ${fmt(bare.Ts, 1)}°C`;
   svg.appendChild(lbl1);
   // tbc bar
-  svg.appendChild(svgEl("rect", { x: x0, y: y0 + 24 + barH + 16, width: xs(tbc.Ts) - x0, height: barH, fill: "var(--heat)", rx: 2 }));
+  const tbcBar = svgEl("rect", { x: x0, y: y0 + 24 + barH + 16, width: heroAnimated ? tbcW : 0, height: barH, fill: "var(--heat)", rx: 2 });
+  svg.appendChild(tbcBar);
   const lbl2 = svgEl("text", { x: Math.min(xs(tbc.Ts) + 8, x0 + w - 4), y: y0 + 24 + barH + 16 + barH / 2 + 4, class: "axis-label", fill: "var(--ink-2)" });
   lbl2.textContent = `TBC  ${fmt(tbc.Ts, 1)}°C`;
   svg.appendChild(lbl2);
+  if (!heroAnimated) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      bareBar.style.transition = "width 1.1s cubic-bezier(0.16,1,0.3,1)";
+      tbcBar.style.transition = "width 1.1s cubic-bezier(0.16,1,0.3,1) 0.12s";
+      bareBar.setAttribute("width", bareW);
+      tbcBar.setAttribute("width", tbcW);
+    }));
+  }
 
   // keep soak T0 slider following steady-state unless user has dragged it manually
   if (!window.__t0Touched) {
@@ -196,7 +208,17 @@ function renderSoak() {
   const rk4Pts = rk4.t.map((tt, i) => [tt / 60, rk4.T[i]]);
   const linPts = lin.t.map((tt, i) => [tt / 60, lin.T[i]]);
   svg.appendChild(svgEl("path", { d: pathFrom(linPts, xs, ys), fill: "none", stroke: "var(--cool)", "stroke-width": 2, "stroke-dasharray": "5,5" }));
-  svg.appendChild(svgEl("path", { d: pathFrom(rk4Pts, xs, ys), fill: "none", stroke: "var(--heat)", "stroke-width": 2.25, "stroke-linecap": "round" }));
+  const rk4Path = svgEl("path", { d: pathFrom(rk4Pts, xs, ys), fill: "none", stroke: "var(--heat)", "stroke-width": 2.25, "stroke-linecap": "round" });
+  svg.appendChild(rk4Path);
+  if (!heroAnimated) {
+    const len = rk4Path.getTotalLength();
+    rk4Path.style.strokeDasharray = `${len}`;
+    rk4Path.style.strokeDashoffset = `${len}`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      rk4Path.style.transition = "stroke-dashoffset 1.6s cubic-bezier(0.16,1,0.3,1) 0.3s";
+      rk4Path.style.strokeDashoffset = "0";
+    }));
+  }
 }
 
 $("T0override").addEventListener("input", () => { window.__t0Touched = true; renderSoak(); });
@@ -349,5 +371,6 @@ $("run-mc").addEventListener("click", renderMC);
 renderSteady();
 renderH1Sensitivity();
 renderConvergence();
+heroAnimated = true; // first paint is done drawing in — every render after this is instant
 ["Tgas", "h1", "Ltbc", "ktbc", "Tamb", "h2"].forEach((id) => $(id).addEventListener("input", () => { renderH1Sensitivity(); renderConvergence(); }));
 ["Tsoak", "hnat"].forEach((id) => $(id).addEventListener("input", renderConvergence));
