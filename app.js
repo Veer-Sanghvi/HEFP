@@ -1,4 +1,4 @@
-// HEFP dashboard — wiring, SVG charts, and UI state.
+// HEFP dashboard: wiring, SVG charts, and UI state.
 "use strict";
 
 const NS = "http://www.w3.org/2000/svg";
@@ -72,7 +72,7 @@ function readSoakInputs() {
 }
 
 let lastTbcSteady = 477.5;
-let heroAnimated = false; // true after the first paint — only the very first render draws in
+let heroAnimated = false; // true after the first paint; only the very first render draws in
 
 // ================= Section 1: steady state =================
 function renderSteady() {
@@ -94,9 +94,9 @@ function renderSteady() {
 
   const flag = (val, elId) => {
     const el = $(elId);
-    if (val > HAZ_HIGH) el.innerHTML = `<span class="hazard-flag danger">above 450 °C — outside the studied band</span>`;
+    if (val > HAZ_HIGH) el.innerHTML = `<span class="hazard-flag danger">above 450 °C, outside the studied band</span>`;
     else if (val >= HAZ_LOW) el.innerHTML = `<span class="hazard-flag danger">inside 311–450 °C autoignition band</span>`;
-    else el.innerHTML = `<span class="hazard-flag safe">below 311 °C — safe</span>`;
+    else el.innerHTML = `<span class="hazard-flag safe">below 311 °C, safe</span>`;
   };
   flag(bare.Ts, "stat-bare-sub");
   flag(tbc.Ts, "stat-tbc-sub");
@@ -265,7 +265,7 @@ function renderMC() {
 
     $("mc-summary").innerHTML = `Mean <strong>${fmt(mean, 2)}°C</strong>, spread (σ) <strong>${fmt(std, 3)}°C</strong>, range [${fmt(min, 2)}, ${fmt(max, 2)}]. ` +
       (belowBand === 0
-        ? `<span style="color:var(--good)">0 of 20,000 samples dropped below 311°C</span> — manufacturing tolerance alone does not make this surface safe.`
+        ? `<span style="color:var(--good)">0 of 20,000 samples dropped below 311°C</span> . Manufacturing tolerance alone does not make this surface safe.`
         : `<span style="color:var(--critical)">${belowBand} of 20,000 samples dropped below 311°C.</span>`);
 
     // histogram
@@ -371,6 +371,6 @@ $("run-mc").addEventListener("click", renderMC);
 renderSteady();
 renderH1Sensitivity();
 renderConvergence();
-heroAnimated = true; // first paint is done drawing in — every render after this is instant
+heroAnimated = true; // first paint is done drawing in; every render after this is instant
 ["Tgas", "h1", "Ltbc", "ktbc", "Tamb", "h2"].forEach((id) => $(id).addEventListener("input", () => { renderH1Sensitivity(); renderConvergence(); }));
 ["Tsoak", "hnat"].forEach((id) => $(id).addEventListener("input", renderConvergence));

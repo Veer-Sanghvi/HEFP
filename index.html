@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HEFP — Hot-Surface Ignition Thermal Model</title>
-<meta name="description" content="Interactive live simulation of the HEFP hot-surface-ignition thermal model: steady-state conduction/convection/radiation, post-shutdown soak decay, and a real-time RK4 convergence study.">
+<title>HEFP: Hot Engines and Fire Prevention</title>
+<meta name="description" content="HEFP (Hot Engines and Fire Prevention): interactive live simulation of the hot-surface-ignition thermal model. Steady-state conduction/convection/radiation, post-shutdown soak decay, and a real-time RK4 convergence study.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,6 +70,10 @@ header.hero{
   display:flex; align-items:center; gap:10px;
 }
 .kicker::before{content:""; width:22px; height:1.5px; background:var(--heat); display:inline-block;}
+.project-title{
+  font-family:var(--font-mono); font-size:14px; font-weight:600; color:var(--ink-2);
+  letter-spacing:0.01em; margin:0 0 var(--space-md);
+}
 h1{
   font-family:var(--font-display);
   font-weight:600;
@@ -274,19 +278,20 @@ a:hover{border-bottom-color:var(--heat);}
 <div class="wrap">
 <header class="hero">
   <p class="kicker">Live simulation</p>
+  <p class="project-title">HEFP: Hot Engines and Fire Prevention</p>
   <h1>What keeps an exhaust manifold from <em>setting things on fire.</em></h1>
-  <p class="dek">HEFP models the heat traveling out of a running engine's exhaust manifold, through a thermal-barrier coating, into the metal wall, and out to the air; then asks whether that outer surface ever gets hot enough to ignite spilled fuel with no spark at all. Every number below is computed live in your browser, using the same equations as the paper — move a slider and watch it recompute.</p>
-  <p class="byline">Veer Sanghvi · ASTFE · <a href="HEFP.pdf">read the full paper (PDF)</a></p>
+  <p class="dek">HEFP models the heat traveling out of a running engine's exhaust manifold, through a thermal-barrier coating, into the metal wall, and out to the air; then asks whether that outer surface ever gets hot enough to ignite spilled fuel with no spark at all. Every number below is computed live in your browser, using the same equations as the paper. Move a slider and watch it recompute.</p>
+  <p class="byline">Veer Sanghvi · ASTFE TFEC 2027 · <a href="HEFP.pdf">read the full paper (PDF)</a></p>
 </header>
 
 <div class="eli5" style="margin-top:32px;">
   <span class="eli5-label">ELI5</span>
-  <p>Touch a stove burner and you get burned — no flame required, just heat. Engines have the same problem: the exhaust manifold runs hot enough that if fuel or oil drips on it, it can catch fire on contact. This project asks two things: <strong>(1)</strong> how hot does that surface actually get, given the gas inside, the coating on it, and the air outside, and <strong>(2)</strong> after you shut the engine off, how long does the danger stick around while it cools?</p>
+  <p>Touch a stove burner and you get burned. No flame required, just heat. Engines have the same problem: the exhaust manifold runs hot enough that if fuel or oil drips on it, it can catch fire on contact. This project asks two things. <strong>(1)</strong> How hot does that surface actually get, given the gas inside, the coating on it, and the air outside. <strong>(2)</strong> After you shut the engine off, how long does the danger stick around while it cools?</p>
 </div>
 
 <section id="steady">
   <div class="section-head">
-    <span class="eyebrow">01 — Running engine</span>
+    <span class="eyebrow">01. Running engine</span>
     <h2>Steady-state surface temperature</h2>
     <p class="lede">Heat crosses four layers in series: gas-side convection into the coating, conduction through the thermal-barrier coating (TBC), conduction through the cast-iron wall, then convection <em>and</em> radiation out to the underhood air. Change any parameter below and the solver re-converges instantly.</p>
   </div>
@@ -296,22 +301,22 @@ a:hover{border-bottom-color:var(--heat);}
       <div class="field">
         <label>Exhaust gas temp <span class="val" id="v-Tgas">650 °C</span></label>
         <input type="range" id="Tgas" min="400" max="900" step="5" value="650">
-        <span class="hint">T<sub>gas</sub> — hotter fuel-air mix, hotter surface</span>
+        <span class="hint">T<sub>gas</sub>: hotter fuel-air mix, hotter surface</span>
       </div>
       <div class="field">
         <label>Gas-side convection <span class="val" id="v-h1">180 W/m²K</span></label>
         <input type="range" id="h1" min="40" max="400" step="5" value="180">
-        <span class="hint">h₁ — how fast exhaust gas dumps heat into the wall</span>
+        <span class="hint">h₁: how fast exhaust gas dumps heat into the wall</span>
       </div>
       <div class="field">
         <label>TBC thickness <span class="val" id="v-Ltbc">350 μm</span></label>
         <input type="range" id="Ltbc" min="0" max="1000" step="10" value="350">
-        <span class="hint">L<sub>TBC</sub> — yttria-stabilized zirconia coating</span>
+        <span class="hint">L<sub>TBC</sub>: yttria-stabilized zirconia coating</span>
       </div>
       <div class="field">
         <label>TBC conductivity <span class="val" id="v-ktbc">0.90 W/mK</span></label>
         <input type="range" id="ktbc" min="0.3" max="2.0" step="0.05" value="0.9">
-        <span class="hint">k<sub>TBC</sub> — lower = better insulator</span>
+        <span class="hint">k<sub>TBC</sub>: lower = better insulator</span>
       </div>
       <div class="field">
         <label>Underhood air temp <span class="val" id="v-Tamb">80 °C</span></label>
@@ -320,7 +325,7 @@ a:hover{border-bottom-color:var(--heat);}
       <div class="field">
         <label>Outer convection <span class="val" id="v-h2">35 W/m²K</span></label>
         <input type="range" id="h2" min="10" max="80" step="1" value="35">
-        <span class="hint">h₂ — airflow under the hood while running</span>
+        <span class="hint">h₂: airflow under the hood while running</span>
       </div>
       <button class="reset-btn" id="reset-steady">Reset to paper defaults</button>
     </div>
@@ -346,7 +351,7 @@ a:hover{border-bottom-color:var(--heat);}
 
       <div class="chart-card">
         <p class="chart-title">Steady-state comparison against the autoignition band</p>
-        <p class="chart-note">Paper default: bare 484.14 °C, TBC 477.50 °C — a 6.64 °C (1.4%) drop, both still above the danger band.</p>
+        <p class="chart-note">Paper default: bare 484.14 °C, TBC 477.50 °C, a 6.64 °C (1.4%) drop; both still above the danger band.</p>
         <div class="chart-wrap"><svg class="chart" id="chart-steady" viewBox="0 0 720 200"></svg></div>
       </div>
     </div>
@@ -355,14 +360,14 @@ a:hover{border-bottom-color:var(--heat);}
 
 <section id="soak">
   <div class="section-head">
-    <span class="eyebrow">02 — After shutdown</span>
+    <span class="eyebrow">02. After shutdown</span>
     <h2>Post-shutdown heat soak</h2>
-    <p class="lede">Turn the engine off and forced convection stops — the only things left cooling the surface are weak natural convection and radiation. Two solutions are compared: a fourth-order Runge-Kutta (RK4) numerical integration of the full T⁴ radiation term, and a linearized shortcut that freezes the radiation coefficient at its hottest value so it can be solved by hand.</p>
+    <p class="lede">Turn the engine off and forced convection stops. The only things left cooling the surface are weak natural convection and radiation. Two solutions are compared: a fourth-order Runge-Kutta (RK4) numerical integration of the full T⁴ radiation term, and a linearized shortcut that freezes the radiation coefficient at its hottest value so it can be solved by hand.</p>
   </div>
 
   <div class="eli5">
     <span class="eli5-label">ELI5</span>
-    <p>Right after you shut off a car, the manifold doesn't cool instantly — it stays dangerously hot for a few minutes while the metal radiates its stored heat away, like a cast-iron skillet left on the counter. The question is: <em>how long does that danger window last?</em> The shaded band below is the paper's autoignition range (311–450 °C) for common lubricating oils. As long as the curve is inside that band, a fuel spill on that surface can ignite with no spark.</p>
+    <p>Right after you shut off a car, the manifold doesn't cool instantly. It stays dangerously hot for a few minutes while the metal radiates its stored heat away, like a cast-iron skillet left on the counter. The question is: <em>how long does that danger window last?</em> The shaded band below is the paper's autoignition range (311–450 °C) for common lubricating oils. As long as the curve is inside that band, a fuel spill on that surface can ignite with no spark.</p>
   </div>
 
   <div class="lab">
@@ -370,17 +375,17 @@ a:hover{border-bottom-color:var(--heat);}
       <div class="field">
         <label>Soak ambient temp <span class="val" id="v-Tsoak">45 °C</span></label>
         <input type="range" id="Tsoak" min="10" max="60" step="1" value="45">
-        <span class="hint">T∞,soak — underhood air once parked</span>
+        <span class="hint">T∞,soak: underhood air once parked</span>
       </div>
       <div class="field">
         <label>Natural convection <span class="val" id="v-hnat">8.0 W/m²K</span></label>
         <input type="range" id="hnat" min="2" max="25" step="0.5" value="8">
-        <span class="hint">h<sub>nat</sub> — no fan, no ram air, just buoyancy</span>
+        <span class="hint">h<sub>nat</sub>: no fan, no ram air, just buoyancy</span>
       </div>
       <div class="field">
         <label>Starting temp <span class="val" id="v-T0">from steady-state</span></label>
         <input type="range" id="T0override" min="300" max="600" step="1" value="477.5">
-        <span class="hint">T₀ — defaults to the TBC steady-state above</span>
+        <span class="hint">T₀: defaults to the TBC steady-state above</span>
       </div>
       <button class="reset-btn" id="reset-soak">Reset to paper defaults</button>
     </div>
@@ -404,7 +409,7 @@ a:hover{border-bottom-color:var(--heat);}
 
       <div class="chart-card">
         <p class="chart-title">Surface temperature vs. time since shutdown</p>
-        <p class="chart-note">RK4 (solid) vs. linearized analytical shortcut (dashed) — the shortcut diverges 68–70 °C from the true solution 12–20 minutes in, because it assumes the radiation rate never slows down.</p>
+        <p class="chart-note">RK4 (solid) vs. linearized analytical shortcut (dashed): the shortcut diverges 68–70 °C from the true solution 12–20 minutes in, because it assumes the radiation rate never slows down.</p>
         <div class="chart-wrap"><svg class="chart" id="chart-soak" viewBox="0 0 720 320"></svg></div>
         <div class="legend">
           <span class="legend-item"><span class="legend-swatch" style="background:var(--heat)"></span>RK4 (numerical, trustworthy)</span>
@@ -417,15 +422,15 @@ a:hover{border-bottom-color:var(--heat);}
 
 <section id="uncertainty">
   <div class="section-head">
-    <span class="eyebrow">03 — Is the model actually trustworthy?</span>
+    <span class="eyebrow">03. Is the model actually trustworthy?</span>
     <h2>Sensitivity, uncertainty, and numerical accuracy</h2>
-    <p class="lede">Three separate checks, all run live: how sensitive is the answer to gas-side convection, how much does manufacturing tolerance on the coating move the result, and — the one most simulations skip — does the RK4 solver actually converge at the rate it's supposed to?</p>
+    <p class="lede">Three separate checks, all run live: how sensitive is the answer to gas-side convection, how much does manufacturing tolerance on the coating move the result, and whether the RK4 solver actually converges at the rate it's supposed to (the one check most simulations skip).</p>
   </div>
 
   <div class="lab" style="grid-template-columns:1fr 1fr;">
     <div class="chart-card">
       <p class="chart-title">h₁ sensitivity</p>
-      <p class="chart-note">Sweeping gas-side convection from 80 to 400 W/m²K. This is the lever that actually moves the temperature — more than coating thickness ever will.</p>
+      <p class="chart-note">Sweeping gas-side convection from 80 to 400 W/m²K. This is the lever that actually moves the temperature, more than coating thickness ever will.</p>
       <div class="chart-wrap"><svg class="chart" id="chart-h1" viewBox="0 0 460 260"></svg></div>
     </div>
 
@@ -441,7 +446,7 @@ a:hover{border-bottom-color:var(--heat);}
   <div style="margin-top:var(--space-3xl);">
     <div class="section-head" style="margin-bottom:var(--space-lg);">
       <h2 style="font-size:1.3rem;">RK4 grid-convergence study</h2>
-      <p class="lede">A 4th-order method should quarter its error every time you halve the step size (error ∝ dt⁴, so halving dt should divide the error by 2⁴ = 16, an "observed order" of 4). Real solvers rarely show one clean regime across the whole range — this runs the actual sweep, live, against a reference solution 500×+ finer than any step tested.</p>
+      <p class="lede">A 4th-order method should quarter its error every time you halve the step size (error ∝ dt⁴, so halving dt should divide the error by 2⁴ = 16, an "observed order" of 4). Real solvers rarely show one clean regime across the whole range. This runs the actual sweep, live, against a reference solution 500×+ finer than any step tested.</p>
     </div>
     <div class="chart-card">
       <p class="chart-title">Error vs. step size, log–log</p>
@@ -451,14 +456,14 @@ a:hover{border-bottom-color:var(--heat);}
         <thead><tr><th>dt (s)</th><th>T(2048s) predicted</th><th>|error| vs. reference</th><th>observed order</th></tr></thead>
         <tbody></tbody>
       </table>
-      <p class="small" style="margin-top:14px;">Three regimes, not one: dt ≥ 64s is <strong>pre-asymptotic</strong> (order looks too good — higher-order truncation terms haven't been dominated yet). dt ≈ 32–16s is a <strong>crossover anomaly</strong> where terms partially cancel. dt = 16→2s is the <strong>genuine asymptotic 4th-order regime</strong>, highlighted below. Below dt = 1s the error runs into float64 noise (~10⁻¹¹–10⁻¹² °C) and the order estimate degrades again.</p>
+      <p class="small" style="margin-top:14px;">Three regimes, not one: dt ≥ 64s is <strong>pre-asymptotic</strong> (order looks too good; higher-order truncation terms haven't been dominated yet). dt ≈ 32–16s is a <strong>crossover anomaly</strong> where terms partially cancel. dt = 16→2s is the <strong>genuine asymptotic 4th-order regime</strong>, highlighted below. Below dt = 1s the error runs into float64 noise (~10⁻¹¹–10⁻¹² °C) and the order estimate degrades again.</p>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="rule"></div>
-  <p>HEFP — Hot-surface-ignition thermal model. Steady-state solver, RK4 soak integrator, and convergence sweep are reimplementations of <a href="thermal_model.py">thermal_model.py</a>, running client-side in JavaScript — nothing here is precomputed or faked. Original governing equations, Simscape cross-check, and the ±10% benchtop validation plan are in the <a href="HEFP.pdf">full paper</a>. Autoignition band (311–450 °C) and steady-state figures per the paper's Section 6.</p>
+  <p>HEFP: hot-surface-ignition thermal model. Steady-state solver, RK4 soak integrator, and convergence sweep are reimplementations of <a href="thermal_model.py">thermal_model.py</a>, running client-side in JavaScript. Nothing here is precomputed or faked. Original governing equations, Simscape cross-check, and the ±10% benchtop validation plan are in the <a href="HEFP.pdf">full paper</a>. Autoignition band (311–450 °C) and steady-state figures per the paper's Section 6.</p>
 </footer>
 </div>
 

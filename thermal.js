@@ -1,4 +1,4 @@
-// HEFP thermal model — direct JS port of thermal_model.py.
+// HEFP thermal model: direct JS port of thermal_model.py.
 // Every number on the page is computed here, in the browser, not precomputed.
 "use strict";
 
@@ -52,7 +52,7 @@ function rk4Soak(T0, { Tamb, hOut, Ceff = C_EFF, dt = 1.0, tEnd = 100 * 60, samp
   return { t, T };
 }
 
-// RK4 integration returning only the final value at tEnd (for convergence sweeps — no sampling overhead).
+// RK4 integration returning only the final value at tEnd (for convergence sweeps, no sampling overhead).
 function rk4SoakFinal(T0, { Tamb, hOut, Ceff = C_EFF, dt, tEnd }) {
   const n = Math.round(tEnd / dt);
   let Tc = T0;
