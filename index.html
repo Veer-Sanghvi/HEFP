@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HEFP — Hot-Surface Ignition Thermal Model</title>
+<meta name="description" content="Interactive live simulation of the HEFP hot-surface-ignition thermal model: steady-state conduction/convection/radiation, post-shutdown soak decay, and a real-time RK4 convergence study.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Piazzolla:ital,opsz,wght@0,8..30,400;0,8..30,500;0,8..30,600;0,8..30,700;1,8..30,500&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:      #f9f4ee;
+  --surface:   #fffdfa;
+  --ink:       #241c14;
+  --ink-2:     #6b5c4c;
+  --muted:     #a3927e;
+  --grid:      #ece2d4;
+  --baseline:  #d7c9b6;
+  --border:    rgba(36,28,20,0.10);
+
+  --heat:      #eb6834;
+  --heat-dim:  #f6b699;
+  --cool:      #2a78d6;
+  --cool-dim:  #a9c9ef;
+  --good:      #0ca30c;
+  --critical:  #d03b3b;
+  --critical-tint: rgba(208,59,59,0.08);
+
+  --space-xs: 4px; --space-sm: 8px; --space-md: 12px; --space-lg: 16px;
+  --space-xl: 24px; --space-2xl: 32px; --space-3xl: 48px; --space-4xl: 64px; --space-5xl: 96px;
+
+  --font-display: "Piazzolla", Georgia, serif;
+  --font-body: "Public Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  color-scheme: light;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--page);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+
+::selection{background:var(--heat-dim); color:var(--ink);}
+
+.wrap{max-width:1040px; margin:0 auto; padding:0 clamp(20px,5vw,48px);}
+
+/* ---------- Header ---------- */
+header.hero{
+  padding: clamp(56px,10vw,108px) 0 clamp(40px,6vw,64px);
+  border-bottom:1px solid var(--border);
+}
+.kicker{
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  color:var(--heat);
+  font-weight:700;
+  margin:0 0 var(--space-lg);
+  display:flex; align-items:center; gap:10px;
+}
+.kicker::before{content:""; width:22px; height:1.5px; background:var(--heat); display:inline-block;}
+h1{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(2.1rem, 5vw, 3.4rem);
+  line-height:1.06;
+  letter-spacing:-0.01em;
+  margin:0 0 var(--space-xl);
+  max-width:16ch;
+}
+h1 em{font-style:italic; color:var(--heat);}
+.dek{
+  font-size:1.1rem;
+  color:var(--ink-2);
+  max-width:62ch;
+  margin:0 0 var(--space-lg);
+}
+.byline{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--muted);
+}
+.byline a{color:var(--ink-2);}
+
+/* ---------- Sections ---------- */
+section{padding: clamp(48px,8vw,80px) 0;}
+section + section{border-top:1px solid var(--border);}
+.section-head{
+  display:grid;
+  grid-template-columns: minmax(0,1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-2xl);
+  max-width: 68ch;
+}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  font-weight:600;
+}
+h2{
+  font-family:var(--font-display);
+  font-size:clamp(1.5rem,3vw,2rem);
+  font-weight:600;
+  margin:0;
+  letter-spacing:-0.01em;
+}
+.lede{color:var(--ink-2); margin:0; font-size:1.02rem;}
+p{margin: 0 0 1em; max-width:70ch;}
+.small{font-size:0.9rem; color:var(--ink-2);}
+
+/* ---------- ELI5 callout ---------- */
+.eli5{
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding: var(--space-xl) var(--space-2xl);
+  max-width:74ch;
+  margin: var(--space-xl) 0;
+}
+.eli5 .eli5-label{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--heat); font-weight:700; margin-bottom:8px; display:block;
+}
+.eli5 p:last-child{margin-bottom:0;}
+
+/* ---------- Layout: controls + readout ---------- */
+.lab{
+  display:grid;
+  grid-template-columns: minmax(260px,340px) 1fr;
+  gap: var(--space-3xl);
+  align-items:start;
+}
+@media (max-width:840px){ .lab{grid-template-columns:1fr;} }
+
+.controls{
+  display:flex; flex-direction:column; gap: var(--space-lg);
+  position:sticky; top:24px;
+}
+.field{display:flex; flex-direction:column; gap:6px;}
+.field label{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:13px; font-weight:600; color:var(--ink);
+}
+.field label .val{
+  font-family:var(--font-mono); font-weight:500; color:var(--heat); font-size:13px;
+}
+.field .hint{font-size:11.5px; color:var(--muted);}
+input[type=range]{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:3px; background:var(--baseline); border-radius:2px; outline:none;
+  margin:4px 0;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:15px; height:15px; border-radius:50%;
+  background:var(--surface); border:2.5px solid var(--heat); cursor:pointer;
+  transition:transform .12s ease-out;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);}
+input[type=range]::-moz-range-thumb{
+  width:15px; height:15px; border-radius:50%; background:var(--surface);
+  border:2.5px solid var(--heat); cursor:pointer;
+}
+.reset-btn{
+  align-self:flex-start;
+  font-family:var(--font-mono); font-size:12px; color:var(--ink-2);
+  background:none; border:1px solid var(--border); border-radius:3px;
+  padding:6px 12px; cursor:pointer; transition:all .15s ease-out;
+}
+.reset-btn:hover{border-color:var(--heat); color:var(--heat);}
+
+.readout{display:flex; flex-direction:column; gap:var(--space-2xl);}
+
+/* ---------- Stat pair ---------- */
+.stat-row{display:flex; gap:var(--space-3xl); flex-wrap:wrap;}
+.stat{min-width:150px;}
+.stat .stat-label{
+  font-family:var(--font-mono); font-size:11.5px; text-transform:uppercase;
+  letter-spacing:0.06em; color:var(--muted); margin-bottom:6px; display:flex; align-items:center; gap:6px;
+}
+.swatch{width:9px; height:9px; border-radius:50%; display:inline-block;}
+.stat .stat-value{
+  font-family:var(--font-mono); font-weight:700; font-size:clamp(1.8rem,4vw,2.5rem);
+  line-height:1; color:var(--ink); font-variant-numeric:tabular-nums;
+}
+.stat .stat-value .unit{font-size:0.45em; font-weight:500; color:var(--ink-2); margin-left:2px;}
+.stat .stat-sub{font-size:12.5px; color:var(--ink-2); margin-top:6px;}
+.stat .stat-sub.safe{color:var(--good);}
+.stat .stat-sub.danger{color:var(--critical);}
+
+/* ---------- Chart shell ---------- */
+.chart-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:3px;
+  padding: var(--space-xl); overflow:hidden;
+}
+.chart-title{
+  font-size:13.5px; font-weight:600; margin:0 0 2px;
+}
+.chart-note{font-size:12px; color:var(--muted); margin:0 0 var(--space-lg);}
+svg.chart{width:100%; height:auto; display:block; overflow:visible;}
+.axis-label{font-family:var(--font-mono); font-size:10.5px; fill:var(--muted);}
+.grid-line{stroke:var(--grid); stroke-width:1;}
+.baseline{stroke:var(--baseline); stroke-width:1;}
+.legend{display:flex; gap:var(--space-lg); margin-top:var(--space-md); flex-wrap:wrap;}
+.legend-item{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-2);}
+.legend-swatch{width:14px; height:2.5px; border-radius:2px; display:inline-block;}
+.legend-swatch.dot{width:8px; height:8px; border-radius:50%;}
+
+.tooltip{
+  position:absolute; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--surface); font-family:var(--font-mono);
+  font-size:11.5px; padding:6px 9px; border-radius:3px; white-space:nowrap;
+  transform:translate(-50%,-130%); z-index:5;
+}
+.chart-wrap{position:relative;}
+
+/* ---------- Hazard band callout ---------- */
+.hazard-flag{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-mono); font-size:12px; font-weight:600;
+  padding:5px 10px; border-radius:3px; margin-top:var(--space-md);
+}
+.hazard-flag.danger{background:var(--critical-tint); color:var(--critical);}
+.hazard-flag.safe{background:rgba(12,163,12,0.08); color:var(--good);}
+
+/* ---------- Table ---------- */
+table{width:100%; border-collapse:collapse; font-size:13.5px; margin-top:var(--space-md);}
+th,td{text-align:right; padding:7px 10px; font-variant-numeric:tabular-nums; font-family:var(--font-mono); font-size:12.5px;}
+th:first-child,td:first-child{text-align:left; font-family:var(--font-body); font-weight:500;}
+thead th{color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; border-bottom:1px solid var(--border); font-family:var(--font-mono);}
+tbody tr{border-bottom:1px solid var(--grid);}
+tbody tr:last-child{border-bottom:none;}
+.order-band{color:var(--good); font-weight:700;}
+
+/* ---------- Buttons ---------- */
+.btn{
+  font-family:var(--font-mono); font-size:12.5px; font-weight:600;
+  background:var(--ink); color:var(--surface); border:none; border-radius:3px;
+  padding:10px 16px; cursor:pointer; transition:transform .12s ease-out, background .15s;
+}
+.btn:hover{background:var(--heat);}
+.btn:active{transform:scale(0.97);}
+.btn[disabled]{opacity:0.5; cursor:progress;}
+
+/* ---------- Footer ---------- */
+footer{
+  padding: var(--space-3xl) 0 var(--space-4xl);
+  color:var(--muted); font-size:12.5px;
+}
+footer a{color:var(--ink-2);}
+footer .rule{height:1px; background:var(--border); margin-bottom:var(--space-xl);}
+
+a{color:var(--heat); text-decoration:none; border-bottom:1px solid var(--heat-dim);}
+a:hover{border-bottom-color:var(--heat);}
+
+.diagram{width:100%; height:auto; display:block;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header class="hero">
+  <p class="kicker">Live simulation</p>
+  <h1>What keeps an exhaust manifold from <em>setting things on fire.</em></h1>
+  <p class="dek">HEFP models the heat traveling out of a running engine's exhaust manifold, through a thermal-barrier coating, into the metal wall, and out to the air; then asks whether that outer surface ever gets hot enough to ignite spilled fuel with no spark at all. Every number below is computed live in your browser, using the same equations as the paper — move a slider and watch it recompute.</p>
+  <p class="byline">Veer Sanghvi · ASTFE · <a href="HEFP.pdf">read the full paper (PDF)</a></p>
+</header>
+
+<div class="eli5" style="margin-top:32px;">
+  <span class="eli5-label">ELI5</span>
+  <p>Touch a stove burner and you get burned — no flame required, just heat. Engines have the same problem: the exhaust manifold runs hot enough that if fuel or oil drips on it, it can catch fire on contact. This project asks two things: <strong>(1)</strong> how hot does that surface actually get, given the gas inside, the coating on it, and the air outside, and <strong>(2)</strong> after you shut the engine off, how long does the danger stick around while it cools?</p>
+</div>
+
+<section id="steady">
+  <div class="section-head">
+    <span class="eyebrow">01 — Running engine</span>
+    <h2>Steady-state surface temperature</h2>
+    <p class="lede">Heat crosses four layers in series: gas-side convection into the coating, conduction through the thermal-barrier coating (TBC), conduction through the cast-iron wall, then convection <em>and</em> radiation out to the underhood air. Change any parameter below and the solver re-converges instantly.</p>
+  </div>
+
+  <div class="lab">
+    <div class="controls">
+      <div class="field">
+        <label>Exhaust gas temp <span class="val" id="v-Tgas">650 °C</span></label>
+        <input type="range" id="Tgas" min="400" max="900" step="5" value="650">
+        <span class="hint">T<sub>gas</sub> — hotter fuel-air mix, hotter surface</span>
+      </div>
+      <div class="field">
+        <label>Gas-side convection <span class="val" id="v-h1">180 W/m²K</span></label>
+        <input type="range" id="h1" min="40" max="400" step="5" value="180">
+        <span class="hint">h₁ — how fast exhaust gas dumps heat into the wall</span>
+      </div>
+      <div class="field">
+        <label>TBC thickness <span class="val" id="v-Ltbc">350 μm</span></label>
+        <input type="range" id="Ltbc" min="0" max="1000" step="10" value="350">
+        <span class="hint">L<sub>TBC</sub> — yttria-stabilized zirconia coating</span>
+      </div>
+      <div class="field">
+        <label>TBC conductivity <span class="val" id="v-ktbc">0.90 W/mK</span></label>
+        <input type="range" id="ktbc" min="0.3" max="2.0" step="0.05" value="0.9">
+        <span class="hint">k<sub>TBC</sub> — lower = better insulator</span>
+      </div>
+      <div class="field">
+        <label>Underhood air temp <span class="val" id="v-Tamb">80 °C</span></label>
+        <input type="range" id="Tamb" min="20" max="120" step="1" value="80">
+      </div>
+      <div class="field">
+        <label>Outer convection <span class="val" id="v-h2">35 W/m²K</span></label>
+        <input type="range" id="h2" min="10" max="80" step="1" value="35">
+        <span class="hint">h₂ — airflow under the hood while running</span>
+      </div>
+      <button class="reset-btn" id="reset-steady">Reset to paper defaults</button>
+    </div>
+
+    <div class="readout">
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-label"><span class="swatch" style="background:var(--cool)"></span>Bare metal wall</div>
+          <div class="stat-value" id="stat-bare">—<span class="unit">°C</span></div>
+          <div class="stat-sub" id="stat-bare-sub"></div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><span class="swatch" style="background:var(--heat)"></span>TBC-coated wall</div>
+          <div class="stat-value" id="stat-tbc">—<span class="unit">°C</span></div>
+          <div class="stat-sub" id="stat-tbc-sub"></div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Coating benefit</div>
+          <div class="stat-value" id="stat-drop">—<span class="unit">°C</span></div>
+          <div class="stat-sub">how much the TBC actually buys you</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <p class="chart-title">Steady-state comparison against the autoignition band</p>
+        <p class="chart-note">Paper default: bare 484.14 °C, TBC 477.50 °C — a 6.64 °C (1.4%) drop, both still above the danger band.</p>
+        <div class="chart-wrap"><svg class="chart" id="chart-steady" viewBox="0 0 720 200"></svg></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="soak">
+  <div class="section-head">
+    <span class="eyebrow">02 — After shutdown</span>
+    <h2>Post-shutdown heat soak</h2>
+    <p class="lede">Turn the engine off and forced convection stops — the only things left cooling the surface are weak natural convection and radiation. Two solutions are compared: a fourth-order Runge-Kutta (RK4) numerical integration of the full T⁴ radiation term, and a linearized shortcut that freezes the radiation coefficient at its hottest value so it can be solved by hand.</p>
+  </div>
+
+  <div class="eli5">
+    <span class="eli5-label">ELI5</span>
+    <p>Right after you shut off a car, the manifold doesn't cool instantly — it stays dangerously hot for a few minutes while the metal radiates its stored heat away, like a cast-iron skillet left on the counter. The question is: <em>how long does that danger window last?</em> The shaded band below is the paper's autoignition range (311–450 °C) for common lubricating oils. As long as the curve is inside that band, a fuel spill on that surface can ignite with no spark.</p>
+  </div>
+
+  <div class="lab">
+    <div class="controls">
+      <div class="field">
+        <label>Soak ambient temp <span class="val" id="v-Tsoak">45 °C</span></label>
+        <input type="range" id="Tsoak" min="10" max="60" step="1" value="45">
+        <span class="hint">T∞,soak — underhood air once parked</span>
+      </div>
+      <div class="field">
+        <label>Natural convection <span class="val" id="v-hnat">8.0 W/m²K</span></label>
+        <input type="range" id="hnat" min="2" max="25" step="0.5" value="8">
+        <span class="hint">h<sub>nat</sub> — no fan, no ram air, just buoyancy</span>
+      </div>
+      <div class="field">
+        <label>Starting temp <span class="val" id="v-T0">from steady-state</span></label>
+        <input type="range" id="T0override" min="300" max="600" step="1" value="477.5">
+        <span class="hint">T₀ — defaults to the TBC steady-state above</span>
+      </div>
+      <button class="reset-btn" id="reset-soak">Reset to paper defaults</button>
+    </div>
+
+    <div class="readout">
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-label">Drops below 450 °C at</div>
+          <div class="stat-value" id="stat-t450">—<span class="unit">min</span></div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Clears 311 °C (safe) at</div>
+          <div class="stat-value" id="stat-t311">—<span class="unit">min</span></div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Danger window</div>
+          <div class="stat-value" id="stat-window">—<span class="unit">min</span></div>
+          <div class="stat-sub">time spent inside the autoignition band</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <p class="chart-title">Surface temperature vs. time since shutdown</p>
+        <p class="chart-note">RK4 (solid) vs. linearized analytical shortcut (dashed) — the shortcut diverges 68–70 °C from the true solution 12–20 minutes in, because it assumes the radiation rate never slows down.</p>
+        <div class="chart-wrap"><svg class="chart" id="chart-soak" viewBox="0 0 720 320"></svg></div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--heat)"></span>RK4 (numerical, trustworthy)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--cool); border-top:2px dashed var(--cool); height:0;"></span>Linearized shortcut</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="uncertainty">
+  <div class="section-head">
+    <span class="eyebrow">03 — Is the model actually trustworthy?</span>
+    <h2>Sensitivity, uncertainty, and numerical accuracy</h2>
+    <p class="lede">Three separate checks, all run live: how sensitive is the answer to gas-side convection, how much does manufacturing tolerance on the coating move the result, and — the one most simulations skip — does the RK4 solver actually converge at the rate it's supposed to?</p>
+  </div>
+
+  <div class="lab" style="grid-template-columns:1fr 1fr;">
+    <div class="chart-card">
+      <p class="chart-title">h₁ sensitivity</p>
+      <p class="chart-note">Sweeping gas-side convection from 80 to 400 W/m²K. This is the lever that actually moves the temperature — more than coating thickness ever will.</p>
+      <div class="chart-wrap"><svg class="chart" id="chart-h1" viewBox="0 0 460 260"></svg></div>
+    </div>
+
+    <div class="chart-card">
+      <p class="chart-title">Manufacturing tolerance (Monte Carlo)</p>
+      <p class="chart-note">±10% random variation in TBC thickness and conductivity, matching real coating-process tolerance.</p>
+      <button class="btn" id="run-mc" style="margin-bottom:14px;">Run 20,000 samples</button>
+      <div class="chart-wrap"><svg class="chart" id="chart-mc" viewBox="0 0 460 220"></svg></div>
+      <p class="small" id="mc-summary" style="margin-top:10px;"></p>
+    </div>
+  </div>
+
+  <div style="margin-top:var(--space-3xl);">
+    <div class="section-head" style="margin-bottom:var(--space-lg);">
+      <h2 style="font-size:1.3rem;">RK4 grid-convergence study</h2>
+      <p class="lede">A 4th-order method should quarter its error every time you halve the step size (error ∝ dt⁴, so halving dt should divide the error by 2⁴ = 16, an "observed order" of 4). Real solvers rarely show one clean regime across the whole range — this runs the actual sweep, live, against a reference solution 500×+ finer than any step tested.</p>
+    </div>
+    <div class="chart-card">
+      <p class="chart-title">Error vs. step size, log–log</p>
+      <p class="chart-note">Reference: dt = 0.00195s. Comparison point: t = 2048s into the soak (mid-transient, where truncation error is actually visible).</p>
+      <div class="chart-wrap"><svg class="chart" id="chart-conv" viewBox="0 0 720 300"></svg></div>
+      <table id="conv-table">
+        <thead><tr><th>dt (s)</th><th>T(2048s) predicted</th><th>|error| vs. reference</th><th>observed order</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="small" style="margin-top:14px;">Three regimes, not one: dt ≥ 64s is <strong>pre-asymptotic</strong> (order looks too good — higher-order truncation terms haven't been dominated yet). dt ≈ 32–16s is a <strong>crossover anomaly</strong> where terms partially cancel. dt = 16→2s is the <strong>genuine asymptotic 4th-order regime</strong>, highlighted below. Below dt = 1s the error runs into float64 noise (~10⁻¹¹–10⁻¹² °C) and the order estimate degrades again.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="rule"></div>
+  <p>HEFP — Hot-surface-ignition thermal model. Steady-state solver, RK4 soak integrator, and convergence sweep are reimplementations of <a href="thermal_model.py">thermal_model.py</a>, running client-side in JavaScript — nothing here is precomputed or faked. Original governing equations, Simscape cross-check, and the ±10% benchtop validation plan are in the <a href="HEFP.pdf">full paper</a>. Autoignition band (311–450 °C) and steady-state figures per the paper's Section 6.</p>
+</footer>
+</div>
+
+<script src="thermal.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
