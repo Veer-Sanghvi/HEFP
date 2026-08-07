@@ -162,7 +162,12 @@ p{margin: 0 0 1em; max-width:70ch;}
 .field label .val{
   font-family:var(--font-mono); font-weight:500; color:var(--heat); font-size:13px;
 }
-.field .hint{font-size:11.5px; color:var(--muted);}
+.field .hint{
+  font-size:11.5px; color:var(--muted);
+  max-height:0; opacity:0; overflow:hidden;
+  transition:max-height .18s ease-out, opacity .18s ease-out, margin-top .18s ease-out;
+}
+.field:hover .hint, .field:focus-within .hint{max-height:32px; opacity:1; margin-top:2px;}
 input[type=range]{
   -webkit-appearance:none; appearance:none;
   width:100%; height:3px; background:var(--baseline); border-radius:2px; outline:none;
@@ -271,6 +276,22 @@ a{color:var(--heat); text-decoration:none; border-bottom:1px solid var(--heat-di
 a:hover{border-bottom-color:var(--heat);}
 
 .diagram{width:100%; height:auto; display:block;}
+
+/* ---------- Disclosure (collapsed-by-default deep dive) ---------- */
+.disclosure summary{
+  list-style:none; cursor:pointer;
+  display:flex; align-items:baseline; gap:10px;
+  padding:var(--space-lg) 0; border-top:1px solid var(--border);
+}
+.disclosure summary::-webkit-details-marker{display:none;}
+.disclosure-chevron{
+  color:var(--heat); font-size:13px; flex-shrink:0;
+  transition:transform .18s ease-out; display:inline-block;
+}
+.disclosure[open] .disclosure-chevron{transform:rotate(90deg);}
+.disclosure-title{font-family:var(--font-display); font-weight:600; font-size:1.2rem; display:block;}
+.disclosure-sub{font-size:0.88rem; color:var(--ink-2); display:block; margin-top:2px;}
+.disclosure summary:hover .disclosure-title{color:var(--heat);}
 </style>
 </head>
 <body>
@@ -326,6 +347,16 @@ a:hover{border-bottom-color:var(--heat);}
         <label>Outer convection <span class="val" id="v-h2">35 W/m²K</span></label>
         <input type="range" id="h2" min="10" max="80" step="1" value="35">
         <span class="hint">h₂: airflow under the hood while running</span>
+      </div>
+      <div class="field">
+        <label>Surface emissivity <span class="val" id="v-eps">0.85</span></label>
+        <input type="range" id="eps" min="0.3" max="0.98" step="0.01" value="0.85">
+        <span class="hint">ε: how much heat the surface radiates away; polished metal is low, oxidized/painted is high</span>
+      </div>
+      <div class="field">
+        <label>Wall thickness <span class="val" id="v-Lmetal">6.0 mm</span></label>
+        <input type="range" id="Lmetal" min="2" max="15" step="0.5" value="6">
+        <span class="hint">L<sub>metal</sub>: cast-iron wall; thicker conducts more heat through at steady state, but also holds more heat during the soak</span>
       </div>
       <button class="reset-btn" id="reset-steady">Reset to paper defaults</button>
     </div>
@@ -443,9 +474,15 @@ a:hover{border-bottom-color:var(--heat);}
     </div>
   </div>
 
-  <div style="margin-top:var(--space-3xl);">
-    <div class="section-head" style="margin-bottom:var(--space-lg);">
-      <h2 style="font-size:1.3rem;">RK4 grid-convergence study</h2>
+  <details class="disclosure" style="margin-top:var(--space-3xl);">
+    <summary>
+      <span class="disclosure-chevron">▸</span>
+      <span>
+        <span class="disclosure-title">RK4 grid-convergence study</span>
+        <span class="disclosure-sub">Does the solver actually converge at 4th order? Expand for the full dt sweep.</span>
+      </span>
+    </summary>
+    <div class="section-head" style="margin:var(--space-lg) 0;">
       <p class="lede">A 4th-order method should quarter its error every time you halve the step size (error ∝ dt⁴, so halving dt should divide the error by 2⁴ = 16, an "observed order" of 4). Real solvers rarely show one clean regime across the whole range. This runs the actual sweep, live, against a reference solution 500×+ finer than any step tested.</p>
     </div>
     <div class="chart-card">
@@ -458,7 +495,7 @@ a:hover{border-bottom-color:var(--heat);}
       </table>
       <p class="small" style="margin-top:14px;">Three regimes, not one: dt ≥ 64s is <strong>pre-asymptotic</strong> (order looks too good; higher-order truncation terms haven't been dominated yet). dt ≈ 32–16s is a <strong>crossover anomaly</strong> where terms partially cancel. dt = 16→2s is the <strong>genuine asymptotic 4th-order regime</strong>, highlighted below. Below dt = 1s the error runs into float64 noise (~10⁻¹¹–10⁻¹² °C) and the order estimate degrades again.</p>
     </div>
-  </div>
+  </details>
 </section>
 
 <footer>

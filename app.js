@@ -60,7 +60,18 @@ function readSteadyInputs() {
     k_TBC: +$("ktbc").value,
     Tamb: +$("Tamb").value,
     hOut: +$("h2").value,
+    eps: +$("eps").value,
+    L_metal: +$("Lmetal").value * 1e-3,
   };
+}
+
+// The soak model shares the same physical wall (emissivity, thickness) as the
+// steady-state solver above, so its Ceff and eps follow those same sliders.
+function currentCeff() {
+  return HEFP.RHO_METAL * HEFP.CP_METAL * (+$("Lmetal").value * 1e-3);
+}
+function currentEps() {
+  return +$("eps").value;
 }
 
 function readSoakInputs() {
@@ -83,6 +94,8 @@ function renderSteady() {
   $("v-ktbc").textContent = `${inp.k_TBC.toFixed(2)} W/mK`;
   $("v-Tamb").textContent = `${inp.Tamb} °C`;
   $("v-h2").textContent = `${inp.hOut} W/m²K`;
+  $("v-eps").textContent = `${inp.eps.toFixed(2)}`;
+  $("v-Lmetal").textContent = `${(inp.L_metal * 1e3).toFixed(1)} mm`;
 
   const bare = HEFP.solveSteadyState({ ...inp, withTBC: false });
   const tbc = HEFP.solveSteadyState({ ...inp, withTBC: true });
@@ -153,8 +166,9 @@ function renderSoak() {
   if (window.__t0Touched) $("v-T0").textContent = `${fmt(soakInp.T0, 1)} °C`;
 
   const T0 = soakInp.T0;
-  const rk4 = HEFP.rk4Soak(T0, { Tamb: soakInp.Tamb, hOut: soakInp.hOut, dt: 1.0, tEnd: 100 * 60, sampleEvery: 15 });
-  const lin = HEFP.linearizedSoak(T0, { Tamb: soakInp.Tamb, hOut: soakInp.hOut, tEnd: 100 * 60, sampleEvery: 15 });
+  const Ceff = currentCeff(), eps = currentEps();
+  const rk4 = HEFP.rk4Soak(T0, { Tamb: soakInp.Tamb, hOut: soakInp.hOut, Ceff, eps, dt: 1.0, tEnd: 100 * 60, sampleEvery: 15 });
+  const lin = HEFP.linearizedSoak(T0, { Tamb: soakInp.Tamb, hOut: soakInp.hOut, Ceff, eps, tEnd: 100 * 60, sampleEvery: 15 });
 
   // find crossing times (minutes)
   function crossTime(t, T, threshold) {
@@ -310,6 +324,7 @@ function renderConvergence() {
   const sweep = HEFP.rk4ConvergenceSweep({
     dtList, tCheck: 2048, dtRef: 0.001953125,
     T0: tbcSteady, Tamb: +$("Tsoak").value, hOut: +$("hnat").value,
+    Ceff: currentCeff(), eps: currentEps(),
   });
 
   const svg = $("chart-conv");
@@ -354,12 +369,12 @@ function renderConvergence() {
 }
 
 // ================= wiring =================
-["Tgas", "h1", "Ltbc", "ktbc", "Tamb", "h2"].forEach((id) => $(id).addEventListener("input", renderSteady));
+["Tgas", "h1", "Ltbc", "ktbc", "Tamb", "h2", "eps", "Lmetal"].forEach((id) => $(id).addEventListener("input", renderSteady));
 ["Tsoak", "hnat"].forEach((id) => $(id).addEventListener("input", renderSoak));
 
 $("reset-steady").addEventListener("click", () => {
   $("Tgas").value = 650; $("h1").value = 180; $("Ltbc").value = 350; $("ktbc").value = 0.9;
-  $("Tamb").value = 80; $("h2").value = 35;
+  $("Tamb").value = 80; $("h2").value = 35; $("eps").value = 0.85; $("Lmetal").value = 6;
   renderSteady();
 });
 $("reset-soak").addEventListener("click", () => {
@@ -372,5 +387,5 @@ renderSteady();
 renderH1Sensitivity();
 renderConvergence();
 heroAnimated = true; // first paint is done drawing in; every render after this is instant
-["Tgas", "h1", "Ltbc", "ktbc", "Tamb", "h2"].forEach((id) => $(id).addEventListener("input", () => { renderH1Sensitivity(); renderConvergence(); }));
+["Tgas", "h1", "Ltbc", "ktbc", "Tamb", "h2", "eps", "Lmetal"].forEach((id) => $(id).addEventListener("input", () => { renderH1Sensitivity(); renderConvergence(); }));
 ["Tsoak", "hnat"].forEach((id) => $(id).addEventListener("input", renderConvergence));
