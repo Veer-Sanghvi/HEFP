@@ -4,7 +4,7 @@ const { defineConfig, devices } = require("@playwright/test");
 module.exports = defineConfig({
   testDir: "./tests",
   fullyParallel: true,
-  reporter: [["list"]],
+  reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : [["list"]],
   use: {
     baseURL: "http://127.0.0.1:4173",
     trace: "retain-on-failure",
