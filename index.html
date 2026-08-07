@@ -126,7 +126,7 @@ h2{
 p{margin: 0 0 1em; max-width:70ch;}
 .small{font-size:0.9rem; color:var(--ink-2);}
 
-/* ---------- ELI5 callout ---------- */
+/* ---------- Plain-language callout ---------- */
 .eli5{
   background: var(--surface);
   border:1px solid var(--border);
@@ -134,10 +134,6 @@ p{margin: 0 0 1em; max-width:70ch;}
   padding: var(--space-xl) var(--space-2xl);
   max-width:74ch;
   margin: var(--space-xl) 0;
-}
-.eli5 .eli5-label{
-  font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;
-  text-transform:uppercase; color:var(--heat); font-weight:700; margin-bottom:8px; display:block;
 }
 .eli5 p:last-child{margin-bottom:0;}
 
@@ -310,7 +306,6 @@ a:hover{border-bottom-color:var(--heat);}
 </header>
 
 <div class="eli5" style="margin-top:32px;">
-  <span class="eli5-label">ELI5</span>
   <p>Touch a stove burner and you get burned. No flame required, just heat. Engines have the same problem: the exhaust manifold runs hot enough that if fuel or oil drips on it, it can catch fire on contact. This project asks two things. <strong>(1)</strong> How hot does that surface actually get, given the gas inside, the coating on it, and the air outside. <strong>(2)</strong> After you shut the engine off, how long does the danger stick around while it cools?</p>
 </div>
 
@@ -409,7 +404,6 @@ a:hover{border-bottom-color:var(--heat);}
   </div>
 
   <div class="eli5">
-    <span class="eli5-label">ELI5</span>
     <p>Right after you shut off a car, the manifold doesn't cool instantly. It stays dangerously hot for a few minutes while the metal radiates its stored heat away, like a cast-iron skillet left on the counter. The question is: <em>how long does that danger window last?</em> The shaded band below is the paper's autoignition range (311–450 °C) for common lubricating oils. As long as the curve is inside that band, a fuel spill on that surface can ignite with no spark.</p>
   </div>
 
