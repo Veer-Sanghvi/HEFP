@@ -1,11 +1,17 @@
-// HEFP 3D scene: a simplified inline-4 engine block with a real exhaust
-// manifold (4 curved runners -> collector -> outlet), firing animation,
-// exhaust-flow particles, and radiative heat-ray particles whose rate and
-// brightness are driven by the live computed surface temperature and
-// emissivity — i.e. the actual radiation term in the model, not decoration.
-// Geometry is illustrative/simplified, not a real engine CAD model.
+// HEFP 3D scene: a simplified inline-4 engine block carrying a real scanned
+// exhaust manifold mesh (CC-BY "Exhaust Manifold" by AnsysLearn, Sketchfab),
+// with firing animation, exhaust-flow particles, and radiative heat-ray
+// particles whose rate and brightness are driven by the live computed
+// surface temperature and emissivity — i.e. the actual radiation term in
+// the model, not decoration. The engine block/cylinders are procedural;
+// the manifold geometry itself is the real mesh. Invisible guide curves
+// (matched to the loaded mesh's footprint) drive where flow/ray particles
+// travel, since the real mesh has no parametric runner paths of its own.
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+const MANIFOLD_CREDIT = 'Exhaust Manifold by AnsysLearn (CC-BY-4.0, sketchfab.com/AnsysLearn)';
 
 const N_CYL = 4;
 const CYL_SPACING = 36;
@@ -90,17 +96,14 @@ export function createManifoldScene(hostEl) {
     cylPorts.push(new THREE.Vector3(x, -BLOCK_D / 2 + 14, BLOCK_H + 18));
   }
 
-  // ---- exhaust manifold: 4 runners -> collector -> outlet ----
-  const manifoldMat = new THREE.MeshStandardMaterial({ color: 0x8a8f94, metalness: 0.55, roughness: 0.4 });
+  // ---- exhaust manifold: invisible guide curves (4 runners -> collector -> outlet) ----
+  // these drive particle paths; the VISIBLE manifold is the loaded GLTF mesh below,
+  // positioned to roughly follow this same footprint.
   const collector = new THREE.Vector3(0, BLOCK_D / 2 + 26, BLOCK_H - 14);
   const runnerCurves = cylPorts.map((p) => {
     const mid1 = new THREE.Vector3(p.x, p.y + 22, p.z + 6);
     const mid2 = new THREE.Vector3(p.x * 0.25, collector.y - 18, collector.z + 10);
     return new THREE.CatmullRomCurve3([p, mid1, mid2, collector]);
-  });
-  runnerCurves.forEach((curve) => {
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 36, PIPE_R, 12, false), manifoldMat);
-    scene.add(tube);
   });
   const outletEnd = new THREE.Vector3(0, BLOCK_D / 2 + 95, BLOCK_H - 22);
   const outletCurve = new THREE.CatmullRomCurve3([
@@ -108,9 +111,51 @@ export function createManifoldScene(hostEl) {
     new THREE.Vector3(0, collector.y + 28, collector.z - 6),
     outletEnd,
   ]);
-  const outletTube = new THREE.Mesh(new THREE.TubeGeometry(outletCurve, 30, PIPE_R * 1.15, 12, false), manifoldMat);
-  scene.add(outletTube);
-  const fullCurves = [...runnerCurves]; // flow particles ride a runner then continue conceptually past the collector
+
+  // ---- load the real manifold mesh and fit it over the guide-curve footprint ----
+  let manifoldMaterials = [];
+  const manifoldGroup = new THREE.Group();
+  scene.add(manifoldGroup);
+  new GLTFLoader().load(
+    "models/exhaust_manifold/scene.gltf",
+    (gltf) => {
+      const model = gltf.scene;
+      // glTF is Y-up; this scene uses Z-up (matches camera.up above)
+      model.rotation.x = Math.PI / 2;
+
+      const box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+
+      // fit the manifold's across-cylinders span to the guide curves' span
+      const targetWidth = (N_CYL - 1) * CYL_SPACING * 1.35;
+      const scale = targetWidth / Math.max(size.x, 1e-6);
+      model.scale.setScalar(scale);
+
+      // re-measure after scaling, then center the model on the collector footprint
+      const box2 = new THREE.Box3().setFromObject(model);
+      const center2 = new THREE.Vector3();
+      box2.getCenter(center2);
+      const target = new THREE.Vector3(0, (BLOCK_D / 2 + collector.y) / 2 - 6, BLOCK_H + 6);
+      model.position.sub(center2).add(target);
+
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.material = child.material.clone();
+          child.material.metalness = 0.55;
+          child.material.roughness = 0.4;
+          manifoldMaterials.push(child.material);
+        }
+      });
+      manifoldGroup.add(model);
+      if (pendingColor) manifoldMaterials.forEach((m) => m.color.copy(pendingColor));
+    },
+    undefined,
+    (err) => console.error("HEFP: failed to load exhaust manifold model", err)
+  );
+  let pendingColor = null;
 
   // ---- exhaust-flow particles (hot gas moving through the manifold) ----
   const MAX_FLOW = 24;
@@ -160,7 +205,9 @@ export function createManifoldScene(hostEl) {
   function setTemps({ Tgas, Ts, eps }) {
     currentTgas = Tgas; currentTs = Ts;
     if (typeof eps === "number") currentEps = eps;
-    manifoldMat.color.copy(tempToColor(Ts));
+    const c = tempToColor(Ts);
+    if (manifoldMaterials.length) manifoldMaterials.forEach((m) => m.color.copy(c));
+    else pendingColor = c;
   }
   function setEngineRunning(v) { engineRunning = v; }
 
@@ -238,5 +285,5 @@ export function createManifoldScene(hostEl) {
   }
   animate();
 
-  return { setTemps, setEngineRunning, tempToColor };
+  return { setTemps, setEngineRunning, tempToColor, credit: MANIFOLD_CREDIT };
 }
