@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 *.bak-*
 *.docx.bak-*
+
+node_modules/
+test-results/
+playwright-report/

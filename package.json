@@ -1,0 +1,11 @@
+{
+  "name": "hefp",
+  "private": true,
+  "description": "HEFP: Hot Engines and Fire Prevention -- live thermal simulation.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
