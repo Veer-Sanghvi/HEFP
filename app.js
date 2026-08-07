@@ -107,7 +107,7 @@ function renderSteady() {
   $("stat-bare").innerHTML = `${fmt(bare.Ts, 2)}<span class="unit">°C</span>`;
   $("stat-tbc").innerHTML = `${fmt(tbc.Ts, 2)}<span class="unit">°C</span>`;
   $("stat-drop").innerHTML = `${fmt(bare.Ts - tbc.Ts, 2)}<span class="unit">°C</span>`;
-  if (!window.__soakPlaying) scene3d.setTemps({ Tgas: inp.Tgas, Ts: tbc.Ts });
+  if (!window.__soakPlaying) { scene3d.setTemps({ Tgas: inp.Tgas, Ts: tbc.Ts, eps: inp.eps }); scene3d.setEngineRunning(true); }
 
   const flag = (val, elId) => {
     const el = $(elId);
@@ -401,10 +401,12 @@ $("play-soak-3d").addEventListener("click", () => {
   if (!lastRk4) return;
   const myToken = ++soakPlayToken;
   window.__soakPlaying = true;
+  scene3d.setEngineRunning(false); // forced convection stops at shutdown; no more firing or exhaust flow
   $("play-soak-3d").disabled = true;
   $("play-soak-3d").innerHTML = "Playing…";
 
   const traj = lastRk4;
+  const soakEps = +$("eps").value;
   const realDurationMs = 5000; // compress the 100-minute soak into 5 real seconds
   const eventDurationSec = traj.t[traj.t.length - 1];
   const startTime = performance.now();
@@ -418,7 +420,7 @@ $("play-soak-3d").addEventListener("click", () => {
     const t0 = traj.t[idx], t1 = traj.t[idx + 1];
     const frac = t1 > t0 ? (simTimeSec - t0) / (t1 - t0) : 0;
     const T = traj.T[idx] + (traj.T[idx + 1] - traj.T[idx]) * frac;
-    scene3d.setTemps({ Tgas: T, Ts: T }); // post-shutdown: no more gas flow, roughly uniform cooling
+    scene3d.setTemps({ Tgas: T, Ts: T, eps: soakEps }); // post-shutdown: roughly uniform cooling, but radiation (rays) continues
 
     if (progress < 1) {
       requestAnimationFrame(frame);
