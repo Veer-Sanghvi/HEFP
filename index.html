@@ -264,6 +264,10 @@ tbody tr:last-child{border-bottom:none;}
 .btn:active{transform:scale(0.97);}
 .btn[disabled]{opacity:0.5; cursor:progress;}
 
+.viewer-card{background:var(--surface); border:1px solid var(--border); border-radius:3px; overflow:hidden;}
+#canvas-host-3d{width:100%; aspect-ratio:16/10; display:block;}
+.viewer-footer{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:12px 18px; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:12px; color:var(--muted);}
+
 /* ---------- Footer ---------- */
 footer{
   padding: var(--space-3xl) 0 var(--space-4xl);
@@ -385,6 +389,14 @@ a:hover{border-bottom-color:var(--heat);}
         <p class="chart-note">Paper default: bare 484.14 °C, TBC 477.50 °C, a 6.64 °C (1.4%) drop; both still above the danger band.</p>
         <div class="chart-wrap"><svg class="chart" id="chart-steady" viewBox="0 0 720 200"></svg></div>
       </div>
+
+      <div class="viewer-card">
+        <div id="canvas-host-3d"></div>
+        <div class="viewer-footer">
+          <span>gas core &rarr; TBC coating &rarr; cast-iron wall (not to scale)</span>
+          <button class="btn" id="play-soak-3d">&#9654; Play soak decay</button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -504,7 +516,11 @@ a:hover{border-bottom-color:var(--heat);}
 </footer>
 </div>
 
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+</script>
 <script src="thermal.js"></script>
-<script src="app.js"></script>
+<script type="module" src="scene.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

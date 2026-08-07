@@ -1,10 +1,13 @@
-// HEFP dashboard: wiring, SVG charts, and UI state.
+// HEFP dashboard: wiring, SVG charts, UI state, and the 3D manifold scene.
 "use strict";
+import { createManifoldScene } from "./scene.js";
 
 const NS = "http://www.w3.org/2000/svg";
 const HAZ_LOW = 311, HAZ_HIGH = 450; // paper's autoignition band, deg C
 const fmt = (v, d = 1) => Number(v).toFixed(d);
 const $ = (id) => document.getElementById(id);
+const scene3d = createManifoldScene($("canvas-host-3d"));
+let lastRk4 = null;
 
 function svgEl(tag, attrs = {}) {
   const el = document.createElementNS(NS, tag);
@@ -104,6 +107,7 @@ function renderSteady() {
   $("stat-bare").innerHTML = `${fmt(bare.Ts, 2)}<span class="unit">°C</span>`;
   $("stat-tbc").innerHTML = `${fmt(tbc.Ts, 2)}<span class="unit">°C</span>`;
   $("stat-drop").innerHTML = `${fmt(bare.Ts - tbc.Ts, 2)}<span class="unit">°C</span>`;
+  if (!window.__soakPlaying) scene3d.setTemps({ Tgas: inp.Tgas, Ts: tbc.Ts });
 
   const flag = (val, elId) => {
     const el = $(elId);
@@ -169,6 +173,7 @@ function renderSoak() {
   const Ceff = currentCeff(), eps = currentEps();
   const rk4 = HEFP.rk4Soak(T0, { Tamb: soakInp.Tamb, hOut: soakInp.hOut, Ceff, eps, dt: 1.0, tEnd: 100 * 60, sampleEvery: 15 });
   const lin = HEFP.linearizedSoak(T0, { Tamb: soakInp.Tamb, hOut: soakInp.hOut, Ceff, eps, tEnd: 100 * 60, sampleEvery: 15 });
+  lastRk4 = rk4;
 
   // find crossing times (minutes)
   function crossTime(t, T, threshold) {
@@ -389,3 +394,40 @@ renderConvergence();
 heroAnimated = true; // first paint is done drawing in; every render after this is instant
 ["Tgas", "h1", "Ltbc", "ktbc", "Tamb", "h2", "eps", "Lmetal"].forEach((id) => $(id).addEventListener("input", () => { renderH1Sensitivity(); renderConvergence(); }));
 ["Tsoak", "hnat"].forEach((id) => $(id).addEventListener("input", renderConvergence));
+
+// ---------------- 3D soak playback ----------------
+let soakPlayToken = 0;
+$("play-soak-3d").addEventListener("click", () => {
+  if (!lastRk4) return;
+  const myToken = ++soakPlayToken;
+  window.__soakPlaying = true;
+  $("play-soak-3d").disabled = true;
+  $("play-soak-3d").innerHTML = "Playing…";
+
+  const traj = lastRk4;
+  const realDurationMs = 5000; // compress the 100-minute soak into 5 real seconds
+  const eventDurationSec = traj.t[traj.t.length - 1];
+  const startTime = performance.now();
+
+  function frame(now) {
+    if (myToken !== soakPlayToken) return;
+    const progress = Math.min(1, (now - startTime) / realDurationMs);
+    const simTimeSec = progress * eventDurationSec;
+    let idx = Math.floor((simTimeSec / eventDurationSec) * (traj.t.length - 1));
+    idx = Math.max(0, Math.min(traj.t.length - 2, idx));
+    const t0 = traj.t[idx], t1 = traj.t[idx + 1];
+    const frac = t1 > t0 ? (simTimeSec - t0) / (t1 - t0) : 0;
+    const T = traj.T[idx] + (traj.T[idx + 1] - traj.T[idx]) * frac;
+    scene3d.setTemps({ Tgas: T, Ts: T }); // post-shutdown: no more gas flow, roughly uniform cooling
+
+    if (progress < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      window.__soakPlaying = false;
+      $("play-soak-3d").disabled = false;
+      $("play-soak-3d").innerHTML = "&#9654; Replay soak decay";
+      renderSteady(); // restore the 3D view to the current steady-state values
+    }
+  }
+  requestAnimationFrame(frame);
+});
