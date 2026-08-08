@@ -21,13 +21,6 @@ Co-authored with Shuaib Ibraheem, Jack McGonagle, and Syed Irtiza Ali Shah at We
 
 Full paper: [`HEFP.pdf`](HEFP.pdf)
 
-## Built with
-
-- Vanilla JavaScript (no framework) for the UI and live solver
-- [Three.js](https://threejs.org/) for the 3D exhaust manifold viewer
-- SVG for the charts, rendered by hand from the live solver output
-- [Playwright](https://playwright.dev/) for browser tests
-
 The client-side solver in [`thermal.js`](thermal.js) is a JavaScript reimplementation of [`thermal_model.py`](thermal_model.py). A separate Simulink/Simscape model (`simscape_thermal_model/`) provides an independent physical cross-check of the same results.
 
 ## Repo structure
