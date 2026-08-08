@@ -411,6 +411,13 @@ a:hover{border-bottom-color:var(--heat);}
         <input type="range" id="hnat" min="2" max="25" step="0.5" value="8">
         <span class="hint">h<sub>nat</sub>: no fan, no ram air, just buoyancy</span>
       </div>
+      <div class="field" style="padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,0.02);">
+        <label style="margin-bottom:4px;">Effective manifold diameter <span class="val" id="v-Dnat">80 mm</span></label>
+        <input type="range" id="Dnat" min="30" max="200" step="5" value="80">
+        <span class="hint">manifold treated as a horizontal cylinder for the correlation below; a real manifold isn't a simple cylinder, so this is an engineering approximation</span>
+        <p class="small" id="hnat-physics" style="margin-top:8px;"></p>
+        <button class="btn" id="use-hnat-physics" type="button" style="margin-top:2px;">Use this value →</button>
+      </div>
       <div class="field">
         <label>Starting temp <span class="val" id="v-T0">from steady-state</span></label>
         <input type="range" id="T0override" min="300" max="600" step="1" value="477.5">
@@ -491,6 +498,18 @@ a:hover{border-bottom-color:var(--heat);}
         <tbody></tbody>
       </table>
       <p class="small" style="margin-top:14px;">Three regimes, not one: dt ≥ 64s is <strong>pre-asymptotic</strong> (order looks too good; higher-order truncation terms haven't been dominated yet). dt ≈ 32–16s is a <strong>crossover anomaly</strong> where terms partially cancel. dt = 16→2s is the <strong>genuine asymptotic 4th-order regime</strong>, highlighted below. Below dt = 1s the error runs into float64 noise (~10⁻¹¹–10⁻¹² °C) and the order estimate degrades again.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:var(--space-3xl); padding-top:var(--space-lg); border-top:1px solid var(--border);">
+    <span class="disclosure-title" style="display:block;">Is the lumped-capacitance simplification valid? (beyond the paper)</span>
+    <span class="disclosure-sub" style="display:block;">The RK4 soak model treats the whole wall as one uniform temperature. Cengel &amp; Ghajar's Biot-number criterion checks whether that's actually a safe simplification.</span>
+    <div class="section-head" style="margin:var(--space-lg) 0;">
+      <p class="lede">A "lumped" model only makes sense if the wall's internal temperature gradient is small enough to ignore, i.e. the wall cools faster by convection off its surface than heat can conduct through it. The standard test (Cengel &amp; Ghajar, <em>Heat and Mass Transfer</em>, ch. 4) is the Biot number, Bi = h·L<sub>c</sub>/k: below 0.1, treating the whole body as one temperature typically introduces less than 5% error. This isn't reported in the paper; it's a live check on the paper's own modeling choice, using the current wall thickness and effective outer heat-transfer coefficient (natural convection + linearized radiation at the hottest point in the soak).</p>
+    </div>
+    <div class="chart-card">
+      <p class="chart-title">Biot number, live</p>
+      <p class="small" id="biot-summary"></p>
     </div>
   </div>
 </section>

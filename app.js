@@ -162,6 +162,29 @@ function renderSteady() {
   renderSoak();
 }
 
+// ---- Beyond the paper: physics-derived h_nat + Biot lumped-capacitance check ----
+function renderHnatPhysics() {
+  const soakInp = readSoakInputs();
+  const D = +$("Dnat").value * 1e-3; // mm -> m
+  $("v-Dnat").textContent = `${$("Dnat").value} mm`;
+  const est = HEFP.naturalConvectionH(soakInp.T0, soakInp.Tamb, D);
+  $("hnat-physics").innerHTML = `Physics estimate: <strong>${fmt(est.h, 1)} W/m²K</strong> (Nu = ${fmt(est.Nu, 1)}, Ra<sub>D</sub> = ${est.Ra_D.toExponential(2)}, film temp ${fmt(est.Tf_C, 0)} °C) via the Churchill&ndash;Chu horizontal-cylinder correlation, evaluated at the current starting temp and soak ambient.`;
+}
+
+function renderBiot() {
+  const soakInp = readSoakInputs();
+  const eps = currentEps();
+  const Lc = +$("Lmetal").value * 1e-3;
+  const hRad = HEFP.radiativeH(soakInp.T0, soakInp.Tamb, eps);
+  const hTotal = soakInp.hOut + hRad;
+  const Bi = HEFP.biotNumber(hTotal, Lc, HEFP.K_METAL);
+  const valid = Bi < 0.1;
+  $("biot-summary").innerHTML = `Bi = ${Bi.toFixed(4)} at the start of the soak (h<sub>total</sub> = ${fmt(hTotal, 1)} W/m²K = ${fmt(soakInp.hOut, 1)} convective + ${fmt(hRad, 1)} radiative, L<sub>c</sub> = ${(Lc * 1e3).toFixed(1)} mm, k = ${HEFP.K_METAL} W/mK). ` +
+    (valid
+      ? `<span style="color:var(--good)">Well under the 0.1 threshold</span> — treating the wall as one uniform temperature is a safe simplification for this geometry and wall thickness.`
+      : `<span style="color:var(--critical)">Above the 0.1 threshold</span> — the wall likely has a measurable internal temperature gradient the RK4 model's single-lump temperature can't capture. A true fix would need 1-D transient conduction, not a bigger lump.`);
+}
+
 // ================= Section 2: soak decay =================
 function renderSoak() {
   const soakInp = readSoakInputs();
@@ -238,9 +261,22 @@ function renderSoak() {
       rk4Path.style.strokeDashoffset = "0";
     }));
   }
+
+  renderHnatPhysics();
+  renderBiot();
 }
 
 $("T0override").addEventListener("input", () => { window.__t0Touched = true; renderSoak(); });
+$("Dnat").addEventListener("input", renderHnatPhysics);
+$("use-hnat-physics").addEventListener("click", () => {
+  const soakInp = readSoakInputs();
+  const D = +$("Dnat").value * 1e-3;
+  const est = HEFP.naturalConvectionH(soakInp.T0, soakInp.Tamb, D);
+  const hnatEl = $("hnat");
+  if (est.h > +hnatEl.max) hnatEl.max = Math.ceil(est.h);
+  hnatEl.value = est.h.toFixed(1);
+  renderSoak();
+});
 
 // ================= Section 3a: h1 sensitivity =================
 function renderH1Sensitivity() {
@@ -383,7 +419,7 @@ $("reset-steady").addEventListener("click", () => {
   renderSteady();
 });
 $("reset-soak").addEventListener("click", () => {
-  $("Tsoak").value = 45; $("hnat").value = 8; window.__t0Touched = false;
+  $("Tsoak").value = 45; $("hnat").value = 8; $("hnat").max = 25; $("Dnat").value = 80; window.__t0Touched = false;
   renderSteady();
 });
 $("run-mc").addEventListener("click", renderMC);
