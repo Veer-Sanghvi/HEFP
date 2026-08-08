@@ -476,14 +476,9 @@ a:hover{border-bottom-color:var(--heat);}
     </div>
   </div>
 
-  <details class="disclosure" style="margin-top:var(--space-3xl);">
-    <summary>
-      <span class="disclosure-chevron">▸</span>
-      <span>
-        <span class="disclosure-title">RK4 grid-convergence study</span>
-        <span class="disclosure-sub">Does the solver actually converge at 4th order? Expand for the full dt sweep.</span>
-      </span>
-    </summary>
+  <div style="margin-top:var(--space-3xl); padding-top:var(--space-lg); border-top:1px solid var(--border);">
+    <span class="disclosure-title" style="display:block;">RK4 grid-convergence study</span>
+    <span class="disclosure-sub" style="display:block;">Does the solver actually converge at 4th order? Full dt sweep below.</span>
     <div class="section-head" style="margin:var(--space-lg) 0;">
       <p class="lede">A 4th-order method should quarter its error every time you halve the step size (error ∝ dt⁴, so halving dt should divide the error by 2⁴ = 16, an "observed order" of 4). Real solvers rarely show one clean regime across the whole range. This runs the actual sweep, live, against a reference solution 500×+ finer than any step tested.</p>
     </div>
@@ -497,7 +492,7 @@ a:hover{border-bottom-color:var(--heat);}
       </table>
       <p class="small" style="margin-top:14px;">Three regimes, not one: dt ≥ 64s is <strong>pre-asymptotic</strong> (order looks too good; higher-order truncation terms haven't been dominated yet). dt ≈ 32–16s is a <strong>crossover anomaly</strong> where terms partially cancel. dt = 16→2s is the <strong>genuine asymptotic 4th-order regime</strong>, highlighted below. Below dt = 1s the error runs into float64 noise (~10⁻¹¹–10⁻¹² °C) and the order estimate degrades again.</p>
     </div>
-  </details>
+  </div>
 </section>
 
 <footer>

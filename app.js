@@ -273,7 +273,7 @@ function renderMC() {
   btn.disabled = true;
   btn.textContent = "Running 20,000 samples…";
   setTimeout(() => {
-    const results = HEFP.monteCarlo({ N: 20000, seed: 42, ...base });
+    const results = HEFP.monteCarlo({ N: 20000, seed: Math.floor(Math.random() * 2 ** 31), ...base });
     let min = Infinity, max = -Infinity, sum = 0;
     for (const v of results) { if (v < min) min = v; if (v > max) max = v; sum += v; }
     const mean = sum / results.length;
