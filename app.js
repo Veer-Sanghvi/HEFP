@@ -181,8 +181,8 @@ function renderBiot() {
   const valid = Bi < 0.1;
   $("biot-summary").innerHTML = `Bi = ${Bi.toFixed(4)} at the start of the soak (h<sub>total</sub> = ${fmt(hTotal, 1)} W/m²K = ${fmt(soakInp.hOut, 1)} convective + ${fmt(hRad, 1)} radiative, L<sub>c</sub> = ${(Lc * 1e3).toFixed(1)} mm, k = ${HEFP.K_METAL} W/mK). ` +
     (valid
-      ? `<span style="color:var(--good)">Well under the 0.1 threshold</span> — treating the wall as one uniform temperature is a safe simplification for this geometry and wall thickness.`
-      : `<span style="color:var(--critical)">Above the 0.1 threshold</span> — the wall likely has a measurable internal temperature gradient the RK4 model's single-lump temperature can't capture. A true fix would need 1-D transient conduction, not a bigger lump.`);
+      ? `<span style="color:var(--good)">Well under the 0.1 threshold</span>. Treating the wall as one uniform temperature is a safe simplification for this geometry and wall thickness.`
+      : `<span style="color:var(--critical)">Above the 0.1 threshold</span>. The wall likely has a measurable internal temperature gradient the RK4 model's single-lump temperature can't capture; a true fix would need 1-D transient conduction, not a bigger lump.`);
 }
 
 // ================= Section 2: soak decay =================
