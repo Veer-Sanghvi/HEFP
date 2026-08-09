@@ -64,11 +64,8 @@ test.describe("HEFP thermal simulation", () => {
     await expect(page.locator("#mc-summary")).toContainText("20,000", { timeout: 15000 });
   });
 
-  test("RK4 convergence study is collapsed by default and expands with 10 rows", async ({ page }) => {
-    const details = page.locator("details.disclosure");
-    expect(await details.evaluate((el) => el.open)).toBe(false);
-    await details.locator("summary").click();
-    expect(await details.evaluate((el) => el.open)).toBe(true);
+  test("RK4 convergence study is visible on load with 10 rows, no expand needed", async ({ page }) => {
+    await expect(page.locator("#chart-conv")).toBeVisible();
     await expect(page.locator("#conv-table tbody tr")).toHaveCount(10);
   });
 });
