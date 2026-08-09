@@ -181,7 +181,14 @@ function mulberry32(seed) {
   };
 }
 
-function monteCarlo({ N = 20000, seed = 42, Tgas, Tamb, hOut, h1, L_TBC, k_TBC }) {
+// No default seed: the caller must supply one. An earlier version defaulted
+// to seed = 42, so calling this without an explicit seed silently produced
+// identical "random" samples on every call, which was the original bug this
+// page's Monte Carlo button had. app.js always passes a fresh seed on each
+// click; the missing default is intentional so that bug can't reappear
+// silently if this function is ever called from somewhere else.
+function monteCarlo({ N = 20000, seed, Tgas, Tamb, hOut, h1, L_TBC, k_TBC }) {
+  if (seed === undefined) seed = Date.now() ^ ((Math.random() * 0xffffffff) >>> 0);
   const rng = mulberry32(seed);
   const results = new Float64Array(N);
   for (let i = 0; i < N; i++) {
