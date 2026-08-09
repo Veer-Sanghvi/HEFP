@@ -272,9 +272,10 @@ $("use-hnat-physics").addEventListener("click", () => {
   const soakInp = readSoakInputs();
   const D = +$("Dnat").value * 1e-3;
   const est = HEFP.naturalConvectionH(soakInp.T0, soakInp.Tamb, D);
-  const hnatEl = $("hnat");
-  if (est.h > +hnatEl.max) hnatEl.max = Math.ceil(est.h);
-  hnatEl.value = est.h.toFixed(1);
+  // The Churchill-Chu estimate never exceeds ~11 W/m2K anywhere in this
+  // page's slider ranges (D 30-200mm, T0 300-600C, Tsoak 10-60C), comfortably
+  // under hnat's 25 W/m2K max, so no need to extend the slider's range here.
+  $("hnat").value = est.h.toFixed(1);
   renderSoak();
 });
 
@@ -419,7 +420,7 @@ $("reset-steady").addEventListener("click", () => {
   renderSteady();
 });
 $("reset-soak").addEventListener("click", () => {
-  $("Tsoak").value = 45; $("hnat").value = 8; $("hnat").max = 25; $("Dnat").value = 80; window.__t0Touched = false;
+  $("Tsoak").value = 45; $("hnat").value = 8; $("Dnat").value = 80; window.__t0Touched = false;
   renderSteady();
 });
 $("run-mc").addEventListener("click", renderMC);
