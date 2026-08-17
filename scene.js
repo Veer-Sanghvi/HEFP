@@ -41,8 +41,8 @@ function tempToColor(T) {
 
 export function createManifoldScene(hostEl) {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x181310);
-  scene.fog = new THREE.Fog(0x181310, 500, 1600);
+  scene.background = new THREE.Color(0x161b22);
+  scene.fog = new THREE.Fog(0x161b22, 500, 1600);
 
   const camera = new THREE.PerspectiveCamera(38, 1, 1, 4000);
   camera.position.set(420, -480, 300);
@@ -67,7 +67,7 @@ export function createManifoldScene(hostEl) {
   rim.position.set(-300, 300, 200);
   scene.add(rim);
 
-  const grid = new THREE.GridHelper(1000, 20, 0x2e2419, 0x1c160f);
+  const grid = new THREE.GridHelper(1000, 20, 0x21262d, 0x161b22);
   grid.rotation.x = Math.PI / 2;
   scene.add(grid);
 
