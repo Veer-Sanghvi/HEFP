@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HEFP: Hot Engines and Fire Prevention</title>
 <meta name="description" content="HEFP (Hot Engines and Fire Prevention): interactive live simulation of the hot-surface-ignition thermal model. Steady-state conduction/convection/radiation, post-shutdown soak decay, and a real-time RK4 convergence study.">
+<link rel="canonical" href="https://veer-sanghvi.github.io/HEFP/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="HEFP: Hot Engines and Fire Prevention">
+<meta property="og:description" content="Interactive simulation of a hot-surface-ignition thermal model: conduction, convection, radiation, soak decay, and an RK4 convergence study.">
+<meta property="og:url" content="https://veer-sanghvi.github.io/HEFP/">
+<meta property="og:image" content="https://veer-sanghvi.github.io/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HEFP: Hot Engines and Fire Prevention">
+<meta name="twitter:description" content="Interactive simulation of a hot-surface-ignition thermal model: conduction, convection, radiation, soak decay, and an RK4 convergence study.">
+<meta name="twitter:image" content="https://veer-sanghvi.github.io/assets/og-card.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -169,6 +181,7 @@ input[type=range]{
   width:100%; height:3px; background:var(--baseline); border-radius:2px; outline:none;
   margin:4px 0;
 }
+input[type=range]:focus-visible{outline:2px solid #58a6ff; outline-offset:4px;}
 input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none; width:15px; height:15px; border-radius:50%;
   background:var(--surface); border:2.5px solid var(--heat); cursor:pointer;
@@ -304,6 +317,7 @@ a:hover{border-bottom-color:var(--heat);}
   <p class="dek">HEFP models the heat traveling out of a running engine's exhaust manifold, through a thermal-barrier coating, into the metal wall, and out to the air; then asks whether that outer surface ever gets hot enough to ignite spilled fuel with no spark at all. Every number below is computed live in your browser, using the same equations as the paper. Move a slider and watch it recompute.</p>
   <p class="byline">Veer Sanghvi · submitted to ASTFE TFEC 2027 · <a href="HEFP.pdf">read the full paper (PDF)</a> · <a href="https://github.com/Veer-Sanghvi/HEFP">view on GitHub</a></p>
 </header>
+<main>
 
 <section id="steady">
   <div class="section-head">
@@ -315,41 +329,41 @@ a:hover{border-bottom-color:var(--heat);}
   <div class="lab">
     <div class="controls">
       <div class="field">
-        <label>Exhaust gas temp <span class="val" id="v-Tgas">650 °C</span></label>
+        <label for="Tgas">Exhaust gas temp <span class="val" id="v-Tgas">650 °C</span></label>
         <input type="range" id="Tgas" min="400" max="900" step="5" value="650">
         <span class="hint">T<sub>gas</sub>: hotter fuel-air mix, hotter surface</span>
       </div>
       <div class="field">
-        <label>Gas-side convection <span class="val" id="v-h1">180 W/m²K</span></label>
+        <label for="h1">Gas-side convection <span class="val" id="v-h1">180 W/m²K</span></label>
         <input type="range" id="h1" min="40" max="400" step="5" value="180">
         <span class="hint">h₁: how fast exhaust gas dumps heat into the wall</span>
       </div>
       <div class="field">
-        <label>TBC thickness <span class="val" id="v-Ltbc">350 μm</span></label>
+        <label for="Ltbc">TBC thickness <span class="val" id="v-Ltbc">350 μm</span></label>
         <input type="range" id="Ltbc" min="0" max="1000" step="10" value="350">
         <span class="hint">L<sub>TBC</sub>: yttria-stabilized zirconia coating</span>
       </div>
       <div class="field">
-        <label>TBC conductivity <span class="val" id="v-ktbc">0.90 W/mK</span></label>
+        <label for="ktbc">TBC conductivity <span class="val" id="v-ktbc">0.90 W/mK</span></label>
         <input type="range" id="ktbc" min="0.3" max="2.0" step="0.05" value="0.9">
         <span class="hint">k<sub>TBC</sub>: lower = better insulator</span>
       </div>
       <div class="field">
-        <label>Underhood air temp <span class="val" id="v-Tamb">80 °C</span></label>
+        <label for="Tamb">Underhood air temp <span class="val" id="v-Tamb">80 °C</span></label>
         <input type="range" id="Tamb" min="20" max="120" step="1" value="80">
       </div>
       <div class="field">
-        <label>Outer convection <span class="val" id="v-h2">35 W/m²K</span></label>
+        <label for="h2">Outer convection <span class="val" id="v-h2">35 W/m²K</span></label>
         <input type="range" id="h2" min="10" max="80" step="1" value="35">
         <span class="hint">h₂: airflow under the hood while running</span>
       </div>
       <div class="field">
-        <label>Surface emissivity <span class="val" id="v-eps">0.85</span></label>
+        <label for="eps">Surface emissivity <span class="val" id="v-eps">0.85</span></label>
         <input type="range" id="eps" min="0.3" max="0.98" step="0.01" value="0.85">
         <span class="hint">ε: how much heat the surface radiates away; polished metal is low, oxidized/painted is high</span>
       </div>
       <div class="field">
-        <label>Wall thickness <span class="val" id="v-Lmetal">6.0 mm</span></label>
+        <label for="Lmetal">Wall thickness <span class="val" id="v-Lmetal">6.0 mm</span></label>
         <input type="range" id="Lmetal" min="2" max="15" step="0.5" value="6">
         <span class="hint">L<sub>metal</sub>: cast-iron wall; thicker conducts more heat through at steady state, but also holds more heat during the soak</span>
       </div>
@@ -402,12 +416,12 @@ a:hover{border-bottom-color:var(--heat);}
   <div class="lab">
     <div class="controls">
       <div class="field">
-        <label>Soak ambient temp <span class="val" id="v-Tsoak">45 °C</span></label>
+        <label for="Tsoak">Soak ambient temp <span class="val" id="v-Tsoak">45 °C</span></label>
         <input type="range" id="Tsoak" min="10" max="60" step="1" value="45">
         <span class="hint">T∞,soak: underhood air once parked</span>
       </div>
       <div class="field">
-        <label>Natural convection <span class="val" id="v-hnat">8.0 W/m²K</span></label>
+        <label for="hnat">Natural convection <span class="val" id="v-hnat">8.0 W/m²K</span></label>
         <input type="range" id="hnat" min="2" max="25" step="0.5" value="8">
         <span class="hint">h<sub>nat</sub>: no fan, no ram air, just buoyancy</span>
       </div>
@@ -419,7 +433,7 @@ a:hover{border-bottom-color:var(--heat);}
         <button class="btn" id="use-hnat-physics" type="button" style="margin-top:2px;">Use this value →</button>
       </div>
       <div class="field">
-        <label>Starting temp <span class="val" id="v-T0">from steady-state</span></label>
+        <label for="T0override">Starting temp <span class="val" id="v-T0">from steady-state</span></label>
         <input type="range" id="T0override" min="300" max="600" step="1" value="477.5">
         <span class="hint">T₀: defaults to the TBC steady-state above</span>
       </div>
@@ -514,6 +528,7 @@ a:hover{border-bottom-color:var(--heat);}
   </div>
 </section>
 
+</main>
 <footer>
   <div class="rule"></div>
   <p>HEFP: hot-surface-ignition thermal model. Steady-state solver, RK4 soak integrator, and convergence sweep are reimplementations of <a href="thermal_model.py">thermal_model.py</a>, running client-side in JavaScript. Nothing here is precomputed or faked. Original governing equations, Simscape cross-check, and the ±10% benchtop validation plan are in the <a href="HEFP.pdf">full paper</a>. Autoignition band (311–450 °C) and steady-state figures per the paper's Section 6.</p>
