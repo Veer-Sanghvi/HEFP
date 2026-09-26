@@ -2,7 +2,7 @@
 // exhaust manifold mesh (CC-BY "Exhaust Manifold" by AnsysLearn, Sketchfab),
 // with firing animation, exhaust-flow particles, and radiative heat-ray
 // particles whose rate and brightness are driven by the live computed
-// surface temperature and emissivity — i.e. the actual radiation term in
+// surface temperature and emissivity, i.e. the actual radiation term in
 // the model, not decoration. The engine block/cylinders are procedural;
 // the manifold geometry itself is the real mesh. Invisible guide curves
 // (matched to the loaded mesh's footprint) drive where flow/ray particles

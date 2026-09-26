@@ -12,8 +12,8 @@ Every number on the page is computed live from the same equations as the paper, 
 
 The page covers three things:
 1. **Steady-state surface temperature** while the engine is running, comparing a bare wall against a thermal-barrier-coated one.
-2. **Post-shutdown heat soak** — a 4th-order Runge-Kutta integration of the full radiative cooling curve, checked against a linearized analytical shortcut.
-3. **Sensitivity, uncertainty, and numerical accuracy** — a live Monte Carlo sweep on manufacturing tolerance, and a grid-convergence study confirming the RK4 solver actually converges at the order it's supposed to.
+2. **Post-shutdown heat soak**: a 4th-order Runge-Kutta integration of the full radiative cooling curve, checked against a linearized analytical shortcut.
+3. **Sensitivity, uncertainty, and numerical accuracy**: a live Monte Carlo sweep on manufacturing tolerance, and a grid-convergence study confirming the RK4 solver actually converges at the order it's supposed to.
 
 ## Paper
 
@@ -64,4 +64,4 @@ Tests run automatically on push/PR via GitHub Actions ([`.github/workflows/tests
 
 ## Contact
 
-Veer Sanghvi — [veer-sanghvi.github.io](https://veer-sanghvi.github.io/)
+Veer Sanghvi · [veer-sanghvi.github.io](https://veer-sanghvi.github.io/)

@@ -215,7 +215,7 @@ function renderSoak() {
   if (t450 !== null && t311 !== null) {
     $("stat-window").innerHTML = `${fmt(t311 - t450, 1)}<span class="unit">min</span>`;
   } else {
-    $("stat-window").innerHTML = `—`;
+    $("stat-window").innerHTML = `–`;
   }
 
   const svg = $("chart-soak");
@@ -403,7 +403,7 @@ function renderConvergence() {
   tbody.innerHTML = "";
   dtList.forEach((dt, i) => {
     const tr = document.createElement("tr");
-    const order = i < sweep.orders.length ? sweep.orders[i].toFixed(2) : "—";
+    const order = i < sweep.orders.length ? sweep.orders[i].toFixed(2) : "–";
     const inWindow = windowDts.includes(dt) && i < sweep.orders.length && windowDts.includes(dtList[i+1]);
     tr.innerHTML = `<td>${dt}</td><td>${sweep.Tvals[i].toFixed(6)}</td><td>${sweep.errors[i].toExponential(3)}</td><td class="${inWindow ? "order-band" : ""}">${order}</td>`;
     tbody.appendChild(tr);
