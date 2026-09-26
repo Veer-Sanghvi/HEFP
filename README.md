@@ -17,7 +17,7 @@ The page covers three things:
 
 ## Paper
 
-Co-authored with Shuaib Ibraheem, Jack McGonagle, and Syed Irtiza Ali Shah at Wentworth Institute of Technology. Submitted to the ASTFE 12th Thermal and Fluids Engineering Conference (TFEC 2027); currently under review.
+Co-authored with Shuaib Ibraheem, Jack McGonagle, and Syed Irtiza Ali Shah at Wentworth Institute of Technology. Accepted, ASTFE 12th Thermal and Fluids Engineering Conference (TFEC 2027), at Southern Methodist University, Dallas, TX.
 
 Full paper: [`HEFP.pdf`](HEFP.pdf)
 
